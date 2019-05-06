@@ -1,11 +1,16 @@
+from cgitb import reset
 
+import os
 from flask import *
 import pymysql
+
+from Answer.test import text_to_vector, get_cosine
+
 app=Flask(__name__)
-conn=pymysql.connect(host="localhost",user="root",passwd="",port=3306,db="exam")
+conn=pymysql.connect(host="localhost",user="root",passwd="root",port=3306,db="exam")
 cmd=conn.cursor()
 app.secret_key='sesskey'
-
+path="E:\\New folder\\Answer_Checker\\Answer\\static\\timetable"
 @app.route('/')
 def main():
     return render_template("login.html")
@@ -16,7 +21,7 @@ def login():
     cmd.execute("select * from login where User_name='"+uname+"' and Password='"+password+"'")
     s=cmd.fetchone()
     session['lid'] =s[0]
-    print(s[0])
+    print(s)
     if s is None:
         return '''<script> alert(" invalid user name or password");window.location='/' </script>'''
     elif s[3]=='controller':
@@ -167,13 +172,15 @@ def addexam1():
     subject = request.form['select2']
     Date = request.form['textfield2']
 
-    cmd.execute("insert into exam_add values(null,'"+Exam_Name+"','"+Course+"','"+subject+"','"+Date+"')")
+    cmd.execute("insert into exam_add values(null,'"+Exam_Name+"','"+Course+"','"+subject+"','"+Date+"','pending')")
     conn.commit()
     return '''<script> alert("Exam Added");window.location='/addexam' </script>'''
 
 @app.route('/publishresu',methods=['get','post'])
 def publishresu():
-    return render_template("result publish.html")
+    cmd.execute("select Exam_Name,Exam_id from exam_add where Date<curdate() and publish='pending'")
+    c = cmd.fetchall()
+    return render_template("result publish.html",val=c)
 
 @app.route('/reg4',methods=['get','post'])
 def reg4():
@@ -291,7 +298,7 @@ def uploadtimetable():
     sem = request.form['select3']
     timetable = request.files['filefield']
     img_name = timetable.filename
-    timetable.save("C:\\Users\\chaitanya\\PycharmProjects\\Answer_Checker\\Answer\\static\\timetable\\" + img_name)
+    timetable.save(os.path.join(path,img_name))
     cmd.execute("insert into timetable values(null,'"+course+"','"+sem+"','"+img_name+"')")
     conn.commit()
     return '''<script> alert("Time table uploaded");window.location='/timetable' </script>'''
@@ -364,7 +371,7 @@ def uploadhallticket():
     my= mont+" "+year
     ticket = request.files['filefield']
     img_name = ticket.filename
-    ticket.save("C:\\Users\\chaitanya\\PycharmProjects\\Answer_Checker\\Answer\\static\\hallticket\\" + img_name)
+    ticket.save("E:\\New folder\\Answer_Checker\\Answer\static\\hallticket" + img_name)
     cmd.execute("insert into hall_ticket values(null,'"+studid+"','"+my+"','"+img_name+"','pending')")
     conn.commit()
     return '''<script> alert("Hall ticket uploaded");window.location='/hallticket' </script>'''
@@ -394,6 +401,171 @@ def hallticketdown():
     cmd.execute("select * from hall_ticket where student_id='"+str(stid)+"' and status='approved'")
     b = cmd.fetchone()
     return render_template("view_hall_ticket.html",data=b)
+
+
+@app.route('/viewnotification',methods=['get','post'])
+def viewnotification():
+    cmd.execute("select * from notification")
+    b = cmd.fetchall()
+    return render_template("viewnotification.html",data=b)
+
+@app.route('/myexams',methods=['get','post'])
+def myexams():
+    stid = session['lid']
+    cmd.execute("select exam_add.Exam_Name,Exam_id from exam_add,std_reg,subject where std_reg.Course=exam_add.Course and std_reg.id='"+str(stid)+"' and exam_add.Subject=subject.id and std_reg.sem=subject.sem")
+    b = cmd.fetchall()
+    return render_template("view_my_exam.html",data=b)
+
+@app.route('/viewexamquestions',methods=['get','post'])
+def viewexamquestions():
+    val = request.args.get('id')
+    stid = session['lid']
+    cmd.execute("select * from write_exam,question where stud_id='"+str(stid)+"' and write_exam.ques_id=question.Qid and question.exam_id='"+str(val)+"'")
+    b = cmd.fetchall()
+    if len(b)>0:
+        return '''<script> alert("Already Attended");window.location='/myexams' </script>'''
+    else:
+        cmd.execute("select Qid,Question from question where exam_id='" + str(val) + "'")
+        b = cmd.fetchall()
+        return render_template("view_my_questions.html", data=b)
+
+
+
+
+
+@app.route('/answer',methods=['get','post'])
+def answer():
+    stid = session['lid']
+    qid=request.form.getlist('quesid')
+    ans=request.form.getlist('answer')
+    leng=len(qid)
+    for i in range(0,leng):
+        cmd.execute("select Answer,exam_id from question where Qid='"+qid[i]+"'")
+        b = cmd.fetchone()
+        vector1 = text_to_vector(ans[i])
+        vector2 = text_to_vector(b[0])
+        cosine = float(get_cosine(vector1, vector2))
+        print(cosine)
+        session['cos'] = cosine
+        res = ''
+        if cosine == 1.0:
+            res = 10
+        elif cosine >= 0.7:
+            res = 10
+            #         session['res']=int(res)
+        elif cosine < 0.7:
+            res = 7
+        elif cosine >= 0.5:
+            res = 7
+            #         session['res']=int(res)
+        elif cosine < 0.5:
+            res = 5
+        elif cosine >= 0.4:
+            res = 5
+            #         session['res']=int(res)
+        elif cosine < 0.4:
+            res = 0
+            #         session['res']=int(res)
+            #     print(str(res),"ui")
+        session['res'] = res
+
+        cmd.execute("insert into write_exam values(null,'" + str(
+            stid) + "','"+str(b[1])+"','" + qid[i] + "','" + ans[i] + "','"+str(res)+"')")
+        conn.commit()
+
+
+    return '''<script> alert("Exam Complete");window.location='/studenthome' </script>'''
+
+
+@app.route('/resultpublish',methods=['get','post'])
+def resultpublish():
+    examid = request.args.get('id')
+    cmd.execute("update exam_add set publish='published' where Exam_id='"+examid+"'")
+    conn.commit()
+    cmd.execute("select Exam_Name,Exam_id from exam_add where Date<curdate() and publish='pending'")
+    c = cmd.fetchall()
+    return render_template("result publish.html",val=c)
+
+@app.route('/stud_viewresult',methods=['get','post'])
+def stud_viewresult():
+    stid = session['lid']
+    per=''
+    cmd.execute("select distinct(examid) from write_exam,exam_add where stud_id='"+str(stid)+"' and exam_add.Exam_id=write_exam.examid and exam_add.publish='published'")
+    a = cmd.fetchall()
+    result=[]
+    for x in a:
+        curres=[]
+        cmd.execute("select sum(Mark), exam_add.Exam_Name,count(ques_id) from write_exam,exam_add where write_exam.stud_id='"+str(stid)+"' and write_exam.examid='"+str(x[0])+"' and write_exam.examid=exam_add.Exam_id")
+        c = cmd.fetchone()
+        curres.append(c[1])
+        per=c[0]/(c[2]*10)*100
+        curres.append(per)
+        result.append(curres)
+    return render_template("view_my_result.html",val=result)
+
+@app.route('/viewresultcourse',methods=['get','post'])
+def viewresultcourse():
+    cmd.execute("select Course_id, Course_name from courses")
+    a = cmd.fetchall()
+    return render_template("view_result.html",val=a)
+
+@app.route('/viewresultexam',methods=['get','post'])
+def viewresultexam():
+    cid = request.form['select']
+    cmd.execute("select Course_id, Course_name from courses")
+    a = cmd.fetchall()
+    cmd.execute("select exam_add.Exam_id,Exam_Name from exam_add where Course='"+str(cid)+"' and publish='published'")
+    b = cmd.fetchall()
+    return render_template("view_result.html",val=a,val1=b)
+
+@app.route('/viewresultexam1',methods=['get','post'])
+def viewresultexam1():
+    examid = request.args.get('id')
+    examname = request.args.get('name')
+    per = ''
+    cmd.execute("select distinct(stud_id) from write_exam where examid='"+str(examid)+"'")
+    a = cmd.fetchall()
+    result = []
+    for x in a:
+        curres = []
+        cmd.execute("select sum(Mark), exam_add.Exam_Name,count(ques_id),std_reg.Reg_no,First_Name,Last_Name from write_exam,exam_add,std_reg where write_exam.stud_id='" + str(x[0]) + "' and write_exam.examid='" + str(examid) + "' and write_exam.examid=exam_add.Exam_id and write_exam.stud_id=std_reg.id")
+        c = cmd.fetchone()
+        curres.append(c[1])
+        per = c[0] / (c[2] * 10) * 100
+        curres.append(per)
+        curres.append(c[3])
+        curres.append(c[4])
+        curres.append(c[5])
+        result.append(curres)
+    return render_template("view_result1.html",val=result,name=examname)
+@app.route('/examapply',methods=['get','post'])
+def examapply():
+    cmd.execute("select exam_add .*, courses.Course_name,subject.Subject from exam_add join courses on courses.Course_id=exam_add.Course join exam.subject on exam_add.subject=subject.id")
+    a=cmd.fetchall()
+    print(a)
+    return render_template("Exam Apply.html",data=a)
+
+
+@app.route('/searchsub', methods=['get','post'])
+def searchsub():
+    output=""
+    cour_id =  request.form['search'];
+    cmd.execute("select id,Subject from subject where Course_id='"+cour_id+"'")
+    c=cmd.fetchall()
+    output += ' <select name="select2" id="select2">'
+    for d in c:
+        output += '<option value="'+str(d[0])+'">' + d[1] + '</option>'
+
+    output += '</select>'
+    return json.dumps({'status': output});
+
+@app.route('/staffviewnotification',methods=['get','post'])
+def staffviewnotification():
+    cmd.execute("select * from notification")
+    b = cmd.fetchall()
+    return render_template("staffviewnotification.html",data=b)
+
+
 
 if __name__=='__main__':
     app.run(host='127.0.0.1',debug=True,port=8000)
