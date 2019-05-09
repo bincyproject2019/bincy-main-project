@@ -1,0 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Untitled Document</title>
+</head>
+
+<body>
+{% extends 'collegeindex.html' %}
+{% block body %}
+<form id="form1" name="form1" method="post" action="/subject1">
+  <div align="center">
+    <table width="200" border="1">
+      <tr>
+        <td>Course</td>
+        <td><label for="select2"></label>
+          <select name="select2" id="select2" required>
+            {% for d in val %}
+            <option value="{{d[0]}}">{{d[1]}}</option>
+            {
+            {% endfor %}
+        </select></td>
+      </tr>
+      <tr>
+        <td>Semester</td>
+        <td><label for="select3"></label>
+          <select name="select3" id="select3" required>
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+            <option>6</option>
+        </select></td>
+      </tr>
+      <tr>
+        <td>Subject</td>
+        <td><label for="textfield"></label>
+        <input type="text" name="textfield" id="textfield" required /></td>
+      </tr>
+      <tr>
+        <td colspan="2"><div align="center">
+          <input type="submit" name="button" id="button" value="Add" />
+        </div></td>
+      </tr>
+    </table>
+  </div>
+</form>
+{% endblock %}
+</body>
+</html>

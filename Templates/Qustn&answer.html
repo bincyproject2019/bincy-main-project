@@ -1,0 +1,112 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Untitled Document</title>
+</head>
+{% extends 'staffindex.html' %}
+{% block body %}
+<body>
+<form id="form1" name="form1" method="post" action="/questionadd" enctype="multipart/form-data">
+  <table width="200" border="1">
+
+      <tr>
+        <td>Course</td>
+        <td><label for="select"></label>
+          <label for="select"></label>
+          <!--onchange="hai(this.value)"-->
+          <select name="select" id="select" >
+            <option>Select</option>
+            {% for d in val %}
+            <option value="{{d[0]}}">{{d[1]}}</option>
+             {% endfor %}
+        </select></td>
+      </tr>
+ <tr>
+        <td>sem</td>
+        <td><label for="textfield2"></label>
+          <label for="select"></label>
+          <select name="sem" id="sem" onchange="hai(this.value)">
+
+            <option value="">Select</option>
+            <option value="1">1</option>
+             <option value="1">2</option>
+             <option value="1">3</option>
+             <option value="1">4</option>
+             <option value="1">5</option>
+            <option value="1">6</option>
+
+
+        </select></td>
+      </tr>
+      <tr>
+        <td>Subject</td>
+        <td><div id="sub"></div></td>
+      </tr>
+    <tr>
+      <th scope="col">Select Exam</th>
+      <th scope="col"><label for="select"></label>
+        <label for="select"></label>
+        <div id="exam" name="exam">
+
+      </div></th>
+    </tr>
+    <tr>
+      <td>Question</td>
+      <td><label for="textarea"></label>
+     <input type="file" name="qus" id="qus"/> </td>
+    </tr>
+
+    <tr>
+      <td colspan="2"><div align="center">
+        <input type="submit" name="button" id="button" value="Add" />
+      </div></td>
+    </tr>
+  </table>
+</form>
+<script>
+function hai1(a)
+  { $.ajax({
+            url: '/searchexam',
+            data: {search:a},
+            type: 'POST',
+            success: function(response) {
+                console.log(response)
+                document.getElementById('exam').innerHTML="";
+               document.getElementById('exam').innerHTML=JSON.parse(response).status;
+            },
+            error: function(error) {
+                console.log(error);
+            }
+        });
+
+        }
+
+  function hai(a)
+  {
+    var x = document.getElementById("select").selectedIndex;
+  var y = document.getElementById("select").options;
+var id=y[x].value
+        $.ajax({
+            url: '/searchsub1',
+            data: {search:a,idd:id},
+            type: 'POST',
+            success: function(response) {
+                console.log(response)
+                document.getElementById('sub').innerHTML="";
+               document.getElementById('sub').innerHTML=JSON.parse(response).status;
+            },
+            error: function(error) {
+                console.log(error);
+            }
+        });
+  }
+
+
+ </script>
+
+
+
+</body>
+{% endblock %}
+</html>

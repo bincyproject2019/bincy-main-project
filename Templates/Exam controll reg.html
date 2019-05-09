@@ -1,0 +1,89 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Untitled Document</title>
+</head>
+
+<body>
+{% extends 'collegeindex.html' %}
+{% block body %}
+<form id="form1" name="form1" method="post" action="/examc1">
+  <table width="200" border="1">
+    <tr>
+      <th scope="col">First Name</th>
+      <th scope="col"><label for="textfield"></label>
+      <input type="text" name="textfield" id="textfield" required /></th>
+    </tr>
+    <tr>
+      <td>Last Name</td>
+      <td><label for="textfield2"></label>
+      <input type="text" name="textfield2" id="textfield2" required /></td>
+    </tr>
+    <tr>
+      <td>Address</td>
+      <td><label for="textarea"></label>
+      <textarea name="textarea" id="textarea" cols="45" rows="5" required ></textarea></td>
+    </tr>
+    <tr>
+      <td>Date Of Birth</td>
+      <td><label for="textfield8"></label>
+      <input type="date" name="textfield8" id="textfield8" required /></td>
+    </tr>
+    <tr>
+      <td>Gender</td>
+      <td><input type="radio" name="radio" id="radio" value="Male" />
+      <label for="radio">Male
+        <input type="radio" name="radio" id="radio" value="Female" />
+      Female</label></td>
+    </tr>
+    <tr>
+      <td>Qualification</td>
+      <td><label for="textfield3"></label>
+        <input type="checkbox" name="checkbox" id="checkbox"  value="Degree"/>
+      <label for="checkbox">Degree 
+        <input type="checkbox" name="checkbox" id="checkbox2" value="PG" />
+      PG 
+      <input type="checkbox" name="checkbox" id="checkbox3" value="PhD" />
+      PhD</label></td>
+    </tr>
+    <tr>
+      <td><p>Phone</p></td>
+      <td><label for="textfield4"></label>
+      <input type="text" name="textfield4" id="textfield4"  required pattern="{6789}{0-9}{9}"  /></td>
+    </tr>
+    <tr>
+      <td>E-mail</td>
+      <td><label for="textfield5"></label>
+      <input type="text" name="textfield5" id="textfield5" required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,3}$"  /></td>
+    </tr>
+
+    <tr>
+      <td>Date Of Joining</td>
+      <td><label for="textfield7"></label>
+      <input type="date" name="textfield7" id="textfield7"  required /></td>
+    </tr>
+
+     <tr>
+      <td>Course</td>
+      <td><label for="textfield7"></label>
+      <select id="crs" name="crs">
+        <option value="">Select</option>
+        {% for d in val %}
+        <option value="{{d[0]}}">{{d[1]}}</option>
+        {% endfor %}
+      </select>
+      </td>
+    </tr>
+
+    <tr>
+      <td colspan="2"><div align="center">
+        <input type="submit" name="button" id="button" value="Save" />
+        <input type="submit" name="button2" id="button2" value="Cancel" />
+      </div></td>
+    </tr>
+  </table>
+</form>
+{% endblock %}
+</body>
+</html>

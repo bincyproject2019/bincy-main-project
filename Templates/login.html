@@ -1,0 +1,40 @@
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Untitled Document</title>
+</head>
+
+<body>
+{% extends 'index.html' %}
+{% block body %}
+<form id="form1" name="form1" method="post" action="/login">
+  <table width="600"  >
+    <tr>
+      <th scope="col"><font color="#ffffff" size="5">User Name</font></th>
+      <th scope="col">     <font color="#000000"> <input type="text" name="textfield" id="textfield"  required title="Atleast 6 characters" class="form-control"  ></td></font> </th>
+    </tr>
+    <tr>
+      <th scope="col">&nbsp;</th>
+      <th scope="col">&nbsp;</th>
+    </tr>
+    <tr>
+      <th><font color="#ffffff" size="5">Password</font></th>
+      <th>    <font color="#000000">   <input type="password" name="textfield2" id="textfield2" title="Atleast 6 characters" required pattern="[A-Z a-z0-9]{6,25}" class="form-control ></font>
+      </th>
+    </tr>
+     <tr>
+      <th scope="col">&nbsp;</th>
+      <th scope="col">&nbsp;</th>
+    </tr>
+    <tr>
+      <th colspan="2"><div align="center">
+       <font color="black"> <input type="submit" name="button" id="button" border="5"  value="LOGIN" class="btn btn-primary" /></font>
+          <a href="/reg4"> <font color="#ff0000" size="5">Student Signup</font></a>
+      </div></th>
+    </tr>
+  </table>
+</form>
+{% endblock %}
+</body>
+</html>

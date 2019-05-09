@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Untitled Document</title>
+</head>
+{% extends 'controllerindex.html' %}
+{% block body %}
+<body>
+<form id="form1" name="form1" method="post" action="/searchquestions">
+  <div align="center">
+    <table width="220" border="1">
+      <tr>
+        <th scope="col">Select Exam</th>
+        <th scope="col"><label for="select"></label>
+          <select name="select" id="select">
+            {% for d in val %}
+            <option value="{{d[0]}}">{{d[1]}}</option>
+            {% endfor %}
+        </select></th>
+        <th scope="col"><input type="submit" name="button" id="button" value="Search" /></th>
+      </tr>
+
+    </table>
+    <br>
+    <table width="200" border="1">
+      <tr>
+        <th scope="col">Questions</th>
+        <th scope="col">Answers</th>
+        <th scope="col">Mark</th>
+        <th scope="col">&nbsp;</th>
+      </tr>
+{% for row in data %}
+      <tr>
+        <td>{{row[2]}}</td>
+        <td>{{row[3]}}</td>
+        <td>{{row[4]}}</td>
+        <td><a href="{{ url_for('questionapprove',id=row[0]) }}">Approve</a></td>
+      </tr>
+      {% endfor %}
+    </table>
+    <p>&nbsp;</p>
+  </div>
+</form>
+
+</body>
+{% endblock %}
+</html>

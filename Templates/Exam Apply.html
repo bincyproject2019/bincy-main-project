@@ -1,0 +1,31 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Untitled Document</title>
+</head>
+
+<body>
+<form id="form1" name="form1" method="post" action="/examapply">
+  <table width="363" border="1">
+    <tr>
+
+      <th scope="col">Exam Name</th>
+      <th scope="col">Course</th>
+      <th scope="col">Subject</th>
+      <th scope="col">Date</th>
+      <th scope="col">&nbsp;</th>
+    </tr>
+    <tr>
+       {% for d in a %}
+      <td>{{d[1]}}</td>
+      <td>&nbsp;{{d[5]}}</td>
+      <td>{{d[6]}}</td>
+      <td>&nbsp;{{d[4]}}</td>
+      <td><a href="#">Apply</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+</form>
+</body>
+</html>

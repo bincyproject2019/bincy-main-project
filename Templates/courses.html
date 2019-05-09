@@ -1,0 +1,36 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Untitled Document</title>
+</head>
+
+<body>
+{% extends 'collegeindex.html' %}
+{% block body %}
+<form id="form1" name="form1" method="post" action="/course1">
+  <div align="center">
+    <table width="310" border="1">
+      <tr>
+        <td>Course Name</td>
+        <td><label for="select"></label>
+          <label for="textfield"></label>
+        <input type="text" name="textfield" id="textfield" required /></td>
+      </tr>
+      <tr>
+        <td>Duration</td>
+        <td><label for="select2"></label>
+          <label for="textfield2"></label>
+        <input type="text" name="textfield2" id="textfield2" required /></td>
+      </tr>
+      <tr>
+        <td colspan="2"><div align="center">
+          <input type="submit" name="button" id="button" value="Add" />
+        </div></td>
+      </tr>
+    </table>
+  </div>
+</form>
+{% endblock %}
+</body>
+</html>

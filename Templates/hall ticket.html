@@ -1,0 +1,68 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Untitled Document</title>
+</head>
+{% extends 'staffindex.html' %}
+{% block body %}
+<body>
+<form id="form1" name="form1" method="post" action="/uploadhallticket" enctype="multipart/form-data">
+  <p>&nbsp;</p>
+  <table width="293" border="1">
+    <tr>
+      <th colspan="3" scope="col">Hall Ticket</th>
+    </tr>
+    <tr>
+      <th scope="row">Student</th>
+      <td><label for="select"></label>
+
+            <select name="select" id="select" required>
+              {% for row in val %}
+              <option value="{{row[0]}}">{{row[2]}}  {{row[3]}}</option>
+              {% endfor %}
+            </select>
+          </td>
+    </tr>
+     <tr>
+      <th scope="row">Month & Year of Pass</th>
+      <td>
+            <select name="select2" id="select2" required>
+                <option>January</option>
+                <option>February</option>
+                <option>March</option>
+                <orption>April</orption>
+                <option>May</option>
+                <option>June</option>
+                <option>July</option>
+                <option>August</option>
+                <option>September</option>
+                <option>October</option>
+                <option>November</option>
+                <option>December</option>
+            </select>
+         <select name="select3" id="select3" required>
+             <option>2015</option>
+             <option>2016</option>
+             <option>2017</option>
+             <option>2018</option>
+             <option>2019</option>
+            </select>
+          </td>
+    </tr>
+    <tr>
+      <td>Hall Ticket</td>
+      <td><label for="filefield"></label>
+      <input type="file" name="filefield" id="filefield" /></td>
+    </tr>
+    <tr>
+      <td colspan="3"><div align="center">
+        <input type="submit" name="button2" id="button2" value="Add" />
+      </div></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+</form>
+</body>
+{% endblock %}
+</html>

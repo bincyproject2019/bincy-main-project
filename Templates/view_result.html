@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Untitled Document</title>
+</head>
+{% extends 'staffindex.html' %}
+{% block body %}
+<body>
+<form id="form1" name="form1" method="post" action="/viewresultexam">
+
+    <table width="500" border="0">
+      <tr>
+        <td>Course</td>
+        <td><label for="select"></label>
+          <label for="select"></label>
+          <select name="select" id="select">
+            {% for d in val %}
+            <option value="{{d[0]}}">{{d[1]}}</option>
+             {% endfor %}
+        </select></td>
+      </tr>
+        <tr><td colspan="2" align="center"><input type="submit"></td></tr>
+    </table>
+  </form>
+<table width="500" border="1">
+
+            <tr>
+        <th scope="row">Exam Name</th>
+
+      </tr>
+      {% for row1 in val1 %}
+      <tr>
+          <td scope="row"><a href="{{ url_for('viewresultexam1',id=row1[0],name=row1[1]) }}">{{ row1[1] }}</a></td>
+      </tr>
+      {% endfor %}
+    </table>
+
+  </div>
+
+</body>
+{% endblock %}
+</html>
