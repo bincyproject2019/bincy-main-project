@@ -20,24 +20,25 @@ def login():
     password=request.form['textfield2']
     cmd.execute("select * from login where User_name='"+uname+"' and Password='"+password+"'")
     s=cmd.fetchone()
-    session['lid'] =s[0]
+
     print(s)
     if s is None:
         return '''<script> alert(" invalid user name or password");window.location='/' </script>'''
     elif s[3]=='controller':
-
+        session['lid'] = s[0]
         return '''<script> alert(" login successfull");window.location='/examhome' </script>'''
     elif s[3]=='student':
-
+        session['lid'] = s[0]
         return '''<script> alert(" login successfull");window.location='/studenthome' </script>'''
     elif s[3]=='devagiri':
-
+        session['lid'] = s[0]
         return '''<script> alert(" login successfull");window.location='/devagirihome' </script>'''
     elif s[3] == 'staff':
-
+        session['lid'] = s[0]
         return '''<script> alert(" login successfull");window.location='/depthome' </script>'''
 
     else:
+
         return '''<script> alert(" invalid user name or password");window.location='/' </script>'''
 
 @app.route('/examhome',methods=['get','post'])
@@ -125,7 +126,9 @@ def stdapproval1():
 
 @app.route('/examc',methods=['get','post'])
 def examc():
-    return render_template("Exam controll reg.html")
+    cmd.execute("select * from courses where Course_id not in(select course from examc_reg)")
+    s=cmd.fetchall()
+    return render_template("Exam controll reg.html",val=s)
 @app.route('/examc1', methods=['get','post'])
 def examc1():
     First_name = request.form['textfield']
@@ -136,7 +139,7 @@ def examc1():
     Qualification = request.form.getlist('checkbox')
     Phone = request.form['textfield4']
     Email = request.form['textfield5']
-    Post = request.form['textfield6']
+    Post = request.form['crs']
     Doj = request.form['textfield7']
     cmd.execute("insert into login values(null,'"+First_name+"','"+Phone+"','controller')")
     id=conn.insert_id()
@@ -206,9 +209,25 @@ def reg5():
     Email = request.form['textfield15']
     Course= request.form['select4']
     Sem= request.form['select6']
+
+    cmd.execute("select * from Std_reg where Course= "+str(Course))
+    regno=''
+    if str(Course)=="2":
+        regno="MA"
+    elif str(Course)=="1":
+        regno="BA"
+    elif str(Course)=="9":
+        regno="MCA"
+
+    s=cmd.fetchall()
+
+    rno=len(s)+1+100
+
+    regno=regno+str(rno)
+
     cmd.execute("insert into login values(null,'"+Email+"','"+Phone_number+"','pending')")
     id=conn.insert_id()
-    cmd.execute("insert into Std_reg values('"+str(id)+"','"+Reg_no+"','"+First_Name+"','"+Last_Name+"','"+Father_Name+"','"+Dob+"','"+Gender+"','"+Address+"','"+District+"','"+Pincode+"','"+State+"','"+Nationality+"','"+str(','.join(Qualification))+"','"+Phone_number+"','"+Email+"','"+Course+"','"+Sem+"')")
+    cmd.execute("insert into Std_reg values('"+str(id)+"','"+regno+"','"+First_Name+"','"+Last_Name+"','"+Father_Name+"','"+Dob+"','"+Gender+"','"+Address+"','"+District+"','"+Pincode+"','"+State+"','"+Nationality+"','"+str(','.join(Qualification))+"','"+Phone_number+"','"+Email+"','"+Course+"','"+Sem+"')")
     conn.commit()
     return '''<script> alert(" Successfully Registered");window.location='/reg4' </script>'''
 @app.route('/questview',methods=['get','post'])
@@ -338,7 +357,7 @@ def questionapprove():
 @app.route('/chooseexams',methods=['get','post'])
 def chooseexams():
 
-    cmd.execute("select * from exam_add")
+    cmd.execute("select * from courses")
     a = cmd.fetchall()
     return render_template("Qustn&answer.html", val=a)
 
@@ -346,12 +365,55 @@ def chooseexams():
 
 @app.route('/questionadd',methods=['get','post'])
 def questionadd():
-    examid = request.form['select']
-    quest = request.form['textarea']
-    answ = request.form['textarea2']
-    mark = request.form['textfield2']
-    cmd.execute("insert into question values(null,'"+examid+"','"+quest+"','"+answ+"','"+mark+"','pending')")
-    conn.commit()
+    examid = request.form['exam']
+    quest = request.files['qus']
+
+    quest.save('example.pdf')
+
+    filename = "example.pdf"
+    import PyPDF2
+    pdfFileObj = open(filename, 'rb')
+    pdfReader = PyPDF2.PdfFileReader(pdfFileObj)
+    num_pages = pdfReader.numPages
+    count = 0
+    text = ""
+    while count < num_pages:
+        pageObj = pdfReader.getPage(count)
+        count += 1
+        text += pageObj.extractText()
+    if text != "":
+        text = text
+
+    # print(text)
+
+    questions=text.split('Question')
+    print(questions)
+    for cqus in questions:
+        cquslist=cqus.split('Answer:')
+        qus=str(cquslist[0]).split(':') #[1].replace('\n',' ')
+
+        print(qus)
+        if len(qus)>1:
+            cquss=qus[1].replace('\n',' ')
+            print(cquss)
+
+            cans=cquslist[1].split('mark:')
+
+            canss=str(cans[0]).replace('\n','').replace('\t','')
+            cmark=cans[1].replace('\n','').replace('\t','')
+            print(canss)
+            print(cmark)
+            cmd.execute(
+                "insert into question values(null,'" + examid + "','" + cquss + "','" + canss + "','" + str(cmark) + "','pending','"+str(session['lid'])+"')")
+            conn.commit()
+
+            print('-----------------------------------------')
+
+
+
+
+    # cmd.execute("insert into question values(null,'"+examid+"','"+quest+"','"+answ+"','"+mark+"','pending')")
+    # conn.commit()
     return '''<script> alert("Questions added");window.location='/chooseexams' </script>'''
 
 
@@ -420,17 +482,28 @@ def myexams():
 def viewexamquestions():
     val = request.args.get('id')
     stid = session['lid']
+    # SELECT * FROM
+    # table_name
+    # ORDER
+    # BY
+    # RANDOM()
+    # cmd.execute("select distinct question.tid from write_exam,question where stud_id='" + str(
+    #     stid) + "' and write_exam.ques_id=question.Qid and question.exam_id='" + str(val) + "' order by question.tid RANDOM() limit 1")
+    # s=cmd.fetchone()
+
     cmd.execute("select * from write_exam,question where stud_id='"+str(stid)+"' and write_exam.ques_id=question.Qid and question.exam_id='"+str(val)+"'")
     b = cmd.fetchall()
     if len(b)>0:
         return '''<script> alert("Already Attended");window.location='/myexams' </script>'''
     else:
-        cmd.execute("select Qid,Question from question where exam_id='" + str(val) + "'")
-        b = cmd.fetchall()
-        return render_template("view_my_questions.html", data=b)
-
-
-
+        cmd.execute("select distinct tid  from question where exam_id='" + str(val) + "' order by RAND() limit 1")
+        s=cmd.fetchone()
+        if len(s)>0:
+            cmd.execute("select Qid,Question from question where exam_id='" + str(val) + "' and tid='"+str(s[0])+"'")
+            b = cmd.fetchall()
+            return render_template("view_my_questions.html", data=b)
+        else:
+            return '''<script> alert("No questions");window.location='/myexams' </script>'''
 
 
 @app.route('/answer',methods=['get','post'])
@@ -440,37 +513,63 @@ def answer():
     ans=request.form.getlist('answer')
     leng=len(qid)
     for i in range(0,leng):
-        cmd.execute("select Answer,exam_id from question where Qid='"+qid[i]+"'")
+        cmd.execute("select Answer,exam_id,Mark from question where Qid='"+qid[i]+"'")
         b = cmd.fetchone()
-        vector1 = text_to_vector(ans[i])
-        vector2 = text_to_vector(b[0])
-        cosine = float(get_cosine(vector1, vector2))
-        print(cosine)
-        session['cos'] = cosine
-        res = ''
-        if cosine == 1.0:
-            res = 10
-        elif cosine >= 0.7:
-            res = 10
-            #         session['res']=int(res)
-        elif cosine < 0.7:
-            res = 7
-        elif cosine >= 0.5:
-            res = 7
-            #         session['res']=int(res)
-        elif cosine < 0.5:
-            res = 5
-        elif cosine >= 0.4:
-            res = 5
-            #         session['res']=int(res)
-        elif cosine < 0.4:
-            res = 0
-            #         session['res']=int(res)
-            #     print(str(res),"ui")
-        session['res'] = res
+        # vector1 = text_to_vector(ans[i])
+        # vector2 = text_to_vector(b[0])
+        # cosine = float(get_cosine(vector1, vector2))
+        # print(cosine)
+        # session['cos'] = cosine
+        # res = ''
+        # if cosine == 1.0:
+        #     res = 10
+        # elif cosine >= 0.7:
+        #     res = 10
+        #     #         session['res']=int(res)
+        # elif cosine < 0.7:
+        #     res = 7
+        # elif cosine >= 0.5:
+        #     res = 7
+        #     #         session['res']=int(res)
+        # elif cosine < 0.5:
+        #     res = 5
+        # elif cosine >= 0.4:
+        #     res = 5
+        #     #         session['res']=int(res)
+        # elif cosine < 0.4:
+        #     res = 0
+        #     #         session['res']=int(res)
+        #     #     print(str(res),"ui")
+        # session['res'] = res
 
-        cmd.execute("insert into write_exam values(null,'" + str(
-            stid) + "','"+str(b[1])+"','" + qid[i] + "','" + ans[i] + "','"+str(res)+"')")
+        from sklearn.feature_extraction.text import TfidfVectorizer
+        print(ans[i])
+
+        print(b[0])
+
+        documents = [ans[i],b[0]]
+        tfidf = TfidfVectorizer().fit_transform(documents)
+        # no need to normalize, since Vectorizer will return normalized tf-idf
+        pairwise_similarity = tfidf * tfidf.T
+
+        print(pairwise_similarity)
+
+        ps=str(pairwise_similarity).split('\n')
+        gmark=0
+        print(len(ps))
+        if(len(ps)>=4):
+
+            print(ps)
+            pss=ps[0].split('\t')[1]
+            print(pss)
+            mark=int(b[2])
+            print(mark)
+            gmark=round(float(pss)*float(mark))
+
+
+        print(gmark)
+
+        cmd.execute("insert into write_exam values(null,'" + str(stid) + "','"+str(b[1])+"','" + qid[i] + "','" + ans[i] + "','"+str(gmark)+"')")
         conn.commit()
 
 
@@ -538,32 +637,81 @@ def viewresultexam1():
         curres.append(c[5])
         result.append(curres)
     return render_template("view_result1.html",val=result,name=examname)
-@app.route('/examapply',methods=['get','post'])
-def examapply():
-    cmd.execute("select exam_add .*, courses.Course_name,subject.Subject from exam_add join courses on courses.Course_id=exam_add.Course join exam.subject on exam_add.subject=subject.id")
-    a=cmd.fetchall()
-    print(a)
-    return render_template("Exam Apply.html",data=a)
-
 
 @app.route('/searchsub', methods=['get','post'])
 def searchsub():
     output=""
-    cour_id =  request.form['search'];
-    cmd.execute("select id,Subject from subject where Course_id='"+cour_id+"'")
+    sid = request.form['search'];
+    cour_id = request.form['idd'];
+
+    cmd.execute("select id,Subject from subject where Course_id='"+str(cour_id)+"' and sem='"+str(sid)+"'")
     c=cmd.fetchall()
-    output += ' <select name="select2" id="select2">'
+    output += ' <select name="select2" id="select2"> <option value="">Select</option>'
     for d in c:
         output += '<option value="'+str(d[0])+'">' + d[1] + '</option>'
 
     output += '</select>'
     return json.dumps({'status': output});
 
+
+
+@app.route('/searchsub1', methods=['get','post'])
+def searchsub1():
+    output=""
+    sid = request.form['search'];
+    cour_id = request.form['idd'];
+
+    cmd.execute("select id,Subject from subject where Course_id='"+str(cour_id)+"' and sem='"+str(sid)+"'")
+    c=cmd.fetchall()
+    output += ' <select name="select2" id="select2" onchange="hai1(this.value)" > <option value="">Select</option>'
+    for d in c:
+        output += '<option value="'+str(d[0])+'">' + d[1] + '</option>'
+
+    output += '</select>'
+    return json.dumps({'status': output});
+
+
+@app.route('/searchexam', methods=['get','post'])
+def searchexam():
+    output=""
+    sid = request.form['search'];
+
+    cmd.execute("select Exam_id,Exam_Name from exam_add where Subject='"+str(sid)+"'")
+    c=cmd.fetchall()
+    output += ' <select name="exam" id="exam"  > <option value="">Select</option>'
+    for d in c:
+        output += '<option value="'+str(d[0])+'">' + d[1] + '</option>'
+
+    output += '</select>'
+    return json.dumps({'status': output});
+
+
+
 @app.route('/staffviewnotification',methods=['get','post'])
 def staffviewnotification():
     cmd.execute("select * from notification")
     b = cmd.fetchall()
     return render_template("staffviewnotification.html",data=b)
+
+@app.route('/applyexam',methods=['get','post'])
+def applyexam():
+    cmd.execute("select subject.Subject,exam_add.* from exam_add join std_reg on std_reg.course=exam_add.course join subject on exam_add.subject=subject.id and subject.sem=std_reg.sem where std_reg.id='"+str(session['lid'])+"' and exam_add.Exam_id not in( select Exam_id from apply_exam where Std_id='"+str(session['lid'])+"')")
+    k = cmd.fetchall()
+    return render_template("Apply Exam.html",val=k)
+
+@app.route('/applay_exam1')
+def applay_exam1():
+    id=request.args.get('id')
+    uid=session['lid']
+    cmd.execute("insert into apply_exam values(null,'" + str(uid) + "','" + str(id) + "',curdate())")
+    conn.commit()
+    return  ''' <script>alert('applayed');window.location='applyexam'</script>'''
+
+@app.route('/viewexam',methods=['get','post'])
+def viewexam():
+    m = cmd.fetchall()
+    return render_template("View Exam.html",data=m)
+
 
 
 
